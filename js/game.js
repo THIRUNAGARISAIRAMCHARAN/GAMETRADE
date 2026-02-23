@@ -4,6 +4,9 @@ const config = {
   height: 600,
   parent: 'game-container',
   pixelArt: true,
+  input: {
+    touch: { capture: true }
+  },
   physics: {
     default: 'arcade',
     arcade: { gravity: { y: 0 }, debug: false }

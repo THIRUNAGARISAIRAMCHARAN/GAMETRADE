@@ -7,6 +7,9 @@ class TownScene extends Phaser.Scene {
   constructor() { super('Town'); }
 
   create(data) {
+    if (window.AudioManager) {
+      window.AudioManager.init(this);
+    }
     this.TILE = 32;
     this.MAP_W = 45;
     this.MAP_H = 30;
@@ -60,6 +63,7 @@ class TownScene extends Phaser.Scene {
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     this.createMobileControls();
     this.restoreState();
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // ATM UI state
     this.atmUIOpen = false;
@@ -457,7 +461,7 @@ class TownScene extends Phaser.Scene {
   }
 
   createTreasureMapHUD() {
-    this.mapHudContainer = this.add.container(this.scale.width - 40, 10).setScrollFactor(0).setDepth(100);
+    this.mapHudContainer = this.add.container(this.scale.width - 75, 10).setScrollFactor(0).setDepth(100);
     this.mapHudContainer.setVisible(false);
     const bg = this.add.graphics(); bg.fillStyle(0x000000, 0.5); bg.fillRoundedRect(-14, -4, 32, 32, 6);
     this.mapHudContainer.add(bg);
@@ -470,23 +474,7 @@ class TownScene extends Phaser.Scene {
   hideTreasureMapIcon() { if (this.mapHudContainer) this.mapHudContainer.setVisible(false); }
 
   createMobileControls() {
-    if (!this.sys.game.device.input.touch) return;
-    const btns = [
-      { k: 'dpad-up', x: 80, y: this.scale.height - 120, dx: 0, dy: -1 },
-      { k: 'dpad-down', x: 80, y: this.scale.height - 40, dx: 0, dy: 1 },
-      { k: 'dpad-left', x: 40, y: this.scale.height - 80, dx: -1, dy: 0 },
-      { k: 'dpad-right', x: 120, y: this.scale.height - 80, dx: 1, dy: 0 },
-      { k: 'btn-action', x: this.scale.width - 60, y: this.scale.height - 80, act: true }
-    ];
-    btns.forEach(b => {
-      const img = this.add.image(b.x, b.y, b.k).setScrollFactor(0).setDepth(300).setAlpha(0.6).setInteractive();
-      if (b.act) { img.on('pointerdown', () => this.handleAction()); }
-      else {
-        img.on('pointerdown', () => this.player.setMobileDirection(b.dx, b.dy));
-        img.on('pointerup', () => this.player.setMobileDirection(0, 0));
-        img.on('pointerout', () => this.player.setMobileDirection(0, 0));
-      }
-    });
+    if (typeof MobileControls !== 'undefined') MobileControls.addDpadAndAction(this, this.player, () => this.handleAction());
   }
 
   // ==================== INTERACTIONS ====================
@@ -882,21 +870,7 @@ class TownScene extends Phaser.Scene {
     }
     this.atmUIOpen = false;
 
-    // Game end only after the full cycle: withdraw → house (mother gives list) → market (insufficient) → back to ATM
-    if (window.gameState.get('chapter5Complete') && !window.gameState.get('gameEnded') && window.gameState.get('motherGaveGroceryListAfterATM')) {
-      window.gameState.set('gameEnded', true);
-      this.time.delayedCall(500, () => {
-        this.dialogue.show([
-          { speaker: '', text: 'You used the ATM successfully!' },
-          { speaker: '', text: 'Congratulations! You\'ve completed all banking lessons!' }
-        ], () => {
-          this.cameras.main.fadeOut(800);
-          this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start('GameEnd');
-          });
-        });
-      });
-    }
+    // Never end the game when closing the ATM. The game ends only after: home → mom gives list → market (insufficient) → ATM withdraw → return to market → complete shopping (then MarketScene triggers GameEnd).
   }
 
   // ==================== STORY ====================

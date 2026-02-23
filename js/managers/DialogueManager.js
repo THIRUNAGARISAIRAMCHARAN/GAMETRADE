@@ -98,7 +98,7 @@ class DialogueManager {
   advance() {
     if (!this.isActive) return;
 
-    try { if (this.scene.cache.audio.exists('sfx_dialogue')) this.scene.sound.play('sfx_dialogue', { volume: 0.25 }); } catch (e) {}
+    if (window.AudioManager) window.AudioManager.playClick();
 
     // If still typing, skip to full text
     if (this.isTyping) {
@@ -180,6 +180,7 @@ class DialogueManager {
       btn.on('pointerover', () => btn.setColor('#ffffff'));
       btn.on('pointerout', () => btn.setColor('#d4a440'));
       btn.on('pointerdown', () => {
+        if (window.AudioManager) window.AudioManager.playClick();
         this.clearChoices();
         const prevMessages = this.messages;
         if (onChoice) onChoice(choice.value);

@@ -37,9 +37,22 @@ class BootScene extends Phaser.Scene {
     this.loadBarWidth = barW;
     this.loadBarX = width / 2 - barW / 2;
     this.loadBarY = height / 2 + 30;
+
+    // --- NEW: Load Game Sounds ---
+    this.load.audio('school-road', 'Sounds/School road.mp3');
+
+    // Add error handling to prevent loading lock
+    this.load.on('loaderror', (file) => {
+      console.warn('Failed to load asset:', file.src);
+    });
   }
 
   create() {
+    const { width, height } = this.scale;
+
+    // Initialize Audio Manager with reference to this scene
+    if (window.AudioManager) window.AudioManager.init(this);
+
     // Generate every asset the game needs
     this.generatePixelTexture();  // 1x1 helper
     this.generateTiles();
@@ -54,13 +67,54 @@ class BootScene extends Phaser.Scene {
     this.loadBar.fillStyle(0xd4a440);
     this.loadBar.fillRect(this.loadBarX + 2, this.loadBarY + 2, this.loadBarWidth - 4, 10);
 
-    // Transition to character select
-    this.time.delayedCall(400, () => {
-      this.cameras.main.fadeOut(500, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
+    // --- NEW: Click to Start Screen (Required to unlock Audio) ---
+    const btnW = 200, btnH = 50;
+    const btnX = width / 2, btnY = height / 2 + 100;
+
+    const btnBg = this.add.graphics();
+    btnBg.fillStyle(0xd4a440);
+    btnBg.fillRoundedRect(btnX - btnW / 2, btnY - btnH / 2, btnW, btnH, 8);
+
+    const btnText = this.add.text(btnX, btnY, 'START GAME', {
+      fontSize: '20px',
+      fontFamily: 'monospace',
+      color: '#0d0d1a',
+      fontStyle: 'bold'
+    }).setOrigin(0.5).setDepth(101);
+
+    const startZone = this.add.zone(btnX, btnY, btnW, btnH).setInteractive({ useHandCursor: true });
+
+    startZone.once('pointerdown', () => {
+      try {
+        // Resume and unlock audio context immediately on touch
+        if (window.AudioManager) {
+          window.AudioManager.resumeContext();
+          window.AudioManager.startMusic(); // Start movie music immediately
+        }
+      } catch (e) {
+        console.warn("BootScene: Audio resume failed", e);
+      }
+
+      // Ensure we transition even if fadeOut fails
+      let transitioned = false;
+      const startNext = () => {
+        if (transitioned) return;
+        transitioned = true;
         this.scene.start('CharacterSelect');
-      });
+      };
+
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', startNext);
+
+      // Force transition after 700ms if fadeout event doesn't fire
+      this.time.delayedCall(700, startNext);
     });
+
+    this.add.text(width / 2, height / 2 + 60, 'All systems ready!', {
+      fontSize: '14px',
+      fontFamily: 'monospace',
+      color: '#5a9c4f'
+    }).setOrigin(0.5);
   }
 
   // ========== HELPERS ==========
@@ -568,15 +622,15 @@ class BootScene extends Phaser.Scene {
       ctx.closePath(); ctx.fill();
       // Rock texture - lighter patches
       ctx.fillStyle = '#9a8a7a';
-      [[12, 35, 16, 10], [w-28, 40, 14, 8], [30, 20, 10, 8],
-       [w-42, 22, 12, 7], [20, 55, 12, 10], [w-34, 58, 10, 8],
-       [45, 14, 8, 6], [w-55, 16, 10, 5]].forEach(([rx, ry, rw, rh]) => {
+      [[12, 35, 16, 10], [w - 28, 40, 14, 8], [30, 20, 10, 8],
+      [w - 42, 22, 12, 7], [20, 55, 12, 10], [w - 34, 58, 10, 8],
+      [45, 14, 8, 6], [w - 55, 16, 10, 5]].forEach(([rx, ry, rw, rh]) => {
         ctx.fillRect(rx, ry, rw, rh);
       });
       // Darker rock spots
       ctx.fillStyle = '#5a4a3a';
-      [[18, 42, 8, 5], [w-26, 48, 6, 4], [38, 28, 7, 4],
-       [w-48, 30, 8, 4], [55, 50, 6, 5], [w-60, 52, 7, 4]].forEach(([rx, ry, rw, rh]) => {
+      [[18, 42, 8, 5], [w - 26, 48, 6, 4], [38, 28, 7, 4],
+      [w - 48, 30, 8, 4], [55, 50, 6, 5], [w - 60, 52, 7, 4]].forEach(([rx, ry, rw, rh]) => {
         ctx.fillRect(rx, ry, rw, rh);
       });
       // Boulders at base
@@ -599,9 +653,9 @@ class BootScene extends Phaser.Scene {
       ctx.fillStyle = '#5a4a3a';
       [[-16, 36], [-6, 40], [4, 38], [12, 34]].forEach(([ox, oh]) => {
         ctx.beginPath();
-        ctx.moveTo(w/2 + ox - 3, h - oh);
-        ctx.lineTo(w/2 + ox, h - oh + 10);
-        ctx.lineTo(w/2 + ox + 3, h - oh);
+        ctx.moveTo(w / 2 + ox - 3, h - oh);
+        ctx.lineTo(w / 2 + ox, h - oh + 10);
+        ctx.lineTo(w / 2 + ox + 3, h - oh);
         ctx.closePath(); ctx.fill();
       });
       // Green moss/grass patches

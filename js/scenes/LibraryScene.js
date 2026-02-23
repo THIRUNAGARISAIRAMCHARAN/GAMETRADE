@@ -45,6 +45,8 @@ class LibraryScene extends Phaser.Scene {
     // Controls
     this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.createMobileControls();
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // Intro dialogue
     if (!window.gameState.get('foundTreasureMap')) {
@@ -251,5 +253,9 @@ class LibraryScene extends Phaser.Scene {
     }
 
     if (this.nearestItem) this.nearestItem.action();
+  }
+
+  createMobileControls() {
+    if (typeof MobileControls !== 'undefined') MobileControls.addDpadAndAction(this, this.player, () => this.handleAction());
   }
 }

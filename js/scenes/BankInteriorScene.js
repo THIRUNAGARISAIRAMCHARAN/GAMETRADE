@@ -33,13 +33,14 @@ class BankInteriorScene extends Phaser.Scene {
     this.physics.add.existing(deskZone, true);
     this.physics.add.collider(this.player.sprite, deskZone);
 
-    // Bank customers (background NPCs for atmosphere)
+    // Bank customers (interactable NPCs with bank-related dialogue)
     const customerKeys = ['npc-guide', 'npc-mother', 'npc-aunty'];
     const customerPositions = [
-      { x: 130, y: 350, label: 'Customer' },
-      { x: width - 130, y: 380, label: 'Customer' },
-      { x: 200, y: 450, label: 'Customer' },
+      { x: 130, y: 350, label: 'Customer', lines: ['The bank is a very safe place to keep your money!', 'I always feel secure leaving my savings here.'] },
+      { x: width - 130, y: 380, label: 'Customer', lines: ['The bank gives interest on your savings—your money grows over time!', 'I opened my account years ago and my balance has grown nicely.'] },
+      { x: 200, y: 450, label: 'Customer', lines: ['You can deposit and withdraw whenever you need. Very convenient!', 'The Royal Bank has been serving Aurumvale for generations.'] },
     ];
+    this.bankNPCs = [];
     customerPositions.forEach((cp, i) => {
       const ck = customerKeys[i % customerKeys.length];
       const cust = this.add.sprite(cp.x, cp.y, ck, 0).setDepth(4).setScale(1.1);
@@ -50,6 +51,7 @@ class BankInteriorScene extends Phaser.Scene {
       this.add.text(cp.x, cp.y - 20, cp.label, {
         fontSize: '8px', fontFamily: 'monospace', color: '#aaa', backgroundColor: '#00000066', padding: { x: 2, y: 1 }
       }).setOrigin(0.5).setDepth(5);
+      this.bankNPCs.push({ x: cp.x, y: cp.y, range: 70, lines: cp.lines });
     });
 
     // Dialogue (bottom box style)
@@ -63,6 +65,8 @@ class BankInteriorScene extends Phaser.Scene {
 
     this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.createMobileControls();
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // Dialogue with banker only when player walks to banker and presses E (see handleAction)
   }
@@ -379,6 +383,7 @@ class BankInteriorScene extends Phaser.Scene {
   // ==================== CELEBRATION ====================
 
   celebrateAccount() {
+    if (window.AudioManager) window.AudioManager.playAchievement();
     window.gameState.set('accountCreated', true);
     window.gameState.set('hasBankAccount', true);
     const { width, height } = this.scale;
@@ -415,6 +420,7 @@ class BankInteriorScene extends Phaser.Scene {
       cont.on('pointerover', () => cont.setColor('#ffffff'));
       cont.on('pointerout', () => cont.setColor('#d4a440'));
       cont.on('pointerdown', () => {
+        if (window.AudioManager) window.AudioManager.playClick();
         this.celebLayer.destroy();
         window.gameState.completeChapter(1);
         // Directly launch deposit lesson
@@ -439,17 +445,35 @@ class BankInteriorScene extends Phaser.Scene {
     }
     this.player.update(); this.wallet.update();
     const pos = this.player.getPosition();
+    this.nearestBankNPC = null;
+    let bestDist = Infinity;
+    if (this.bankNPCs) {
+      this.bankNPCs.forEach((npc) => {
+        const d = Phaser.Math.Distance.Between(pos.x, pos.y, npc.x, npc.y);
+        if (d < npc.range && d < bestDist) { bestDist = d; this.nearestBankNPC = npc; }
+      });
+    }
     const bDist = Phaser.Math.Distance.Between(pos.x, pos.y, this.banker.x, this.banker.y);
-    if (bDist < 80) {
+    if (this.nearestBankNPC) {
+      this.interactIcon.setPosition(this.nearestBankNPC.x, this.nearestBankNPC.y - 40 + Math.sin(this.time.now / 300) * 3);
+      this.interactIcon.setVisible(true);
+    } else if (bDist < 80) {
       this.interactIcon.setPosition(this.banker.x, this.banker.y - 40 + Math.sin(this.time.now / 300) * 3);
       this.interactIcon.setVisible(true);
-    } else { this.interactIcon.setVisible(false); }
+    } else {
+      this.interactIcon.setVisible(false);
+    }
     if (Phaser.Input.Keyboard.JustDown(this.eKey)) this.handleAction();
   }
 
   handleAction() {
     if (this.dialogue && this.dialogue.getIsActive()) { this.dialogue.advance(); return; }
     const pos = this.player.getPosition();
+    if (this.nearestBankNPC) {
+      const msgs = this.nearestBankNPC.lines.map((text) => ({ speaker: 'Customer', text }));
+      this.dialogue.show(msgs);
+      return;
+    }
     if (Phaser.Math.Distance.Between(pos.x, pos.y, this.banker.x, this.banker.y) < 80) {
       this.determineFlow();
       return;
@@ -458,5 +482,9 @@ class BankInteriorScene extends Phaser.Scene {
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('BankVillage'));
     }
+  }
+
+  createMobileControls() {
+    if (typeof MobileControls !== 'undefined') MobileControls.addDpadAndAction(this, this.player, () => this.handleAction());
   }
 }

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Royal Bank of Aurumvale</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
@@ -11,10 +12,13 @@
   <div id="game-container"></div>
 
   <!-- Managers -->
+  <script src="js/managers/AudioManager.js"></script>
   <script src="js/managers/GameStateManager.js"></script>
   <script src="js/managers/WalletSystem.js"></script>
   <script src="js/managers/DialogueManager.js"></script>
   <script src="js/managers/PlayerController.js"></script>
+  <script src="js/managers/LevelInfoUI.js"></script>
+  <script src="js/managers/MobileControls.js"></script>
 
   <!-- Scenes -->
   <script src="js/scenes/BootScene.js"></script>

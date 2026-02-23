@@ -205,6 +205,7 @@ class ATMScene extends Phaser.Scene {
   }
 
   onComplete() {
+    if (window.AudioManager) window.AudioManager.playAchievement();
     window.gameState.set('hasATMCard', true);
     window.gameState.completeChapter(5);
 
@@ -226,7 +227,7 @@ class ATMScene extends Phaser.Scene {
       'Your PIN is secret - never share it',
       'Use the ATM near your home to bank anytime',
       'You can check balance, withdraw, and deposit',
-      'Go home and try your new ATM card!'
+      'Exit the bank and go to your village when ready.'
     ];
     points.forEach((p, i) => {
       layer.add(this.add.text(px, py - 50 + i * 26, '\u2705 ' + p, {
@@ -234,7 +235,8 @@ class ATMScene extends Phaser.Scene {
       }).setOrigin(0.5));
     });
 
-    const cont = this.add.text(px, py + 100, '[ Go Home \u2192 ]', {
+    // Return to bank (parent scene); player leaves normally via exit, then village → river → town → home
+    const cont = this.add.text(px, py + 100, '[ Done — Return to Bank \u2192 ]', {
       fontSize: '15px', fontFamily: 'monospace', color: '#d4a440', fontStyle: 'bold'
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     layer.add(cont);
@@ -243,7 +245,8 @@ class ATMScene extends Phaser.Scene {
     cont.on('pointerdown', () => {
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.start('HouseInterior', { from: 'ATM' });
+        this.scene.stop();
+        this.scene.resume(this.parentScene);
       });
     });
   }

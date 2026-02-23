@@ -58,10 +58,10 @@ class PlayerController {
     let vx = this.mobileDir.x;
     let vy = this.mobileDir.y;
 
-    if (this.cursors.left.isDown)  vx = -1;
+    if (this.cursors.left.isDown) vx = -1;
     if (this.cursors.right.isDown) vx = 1;
-    if (this.cursors.up.isDown)    vy = -1;
-    if (this.cursors.down.isDown)  vy = 1;
+    if (this.cursors.up.isDown) vy = -1;
+    if (this.cursors.down.isDown) vy = 1;
 
     const key = this.characterKey;
 
@@ -79,6 +79,9 @@ class PlayerController {
 
       this.sprite.anims.play(key + '-walk-' + this.facing, true);
     } else {
+      if (this.isMoving) {
+        // Just stopped moving
+      }
       this.isMoving = false;
       this.sprite.anims.stop();
 

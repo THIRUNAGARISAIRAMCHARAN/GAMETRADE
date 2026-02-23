@@ -15,9 +15,11 @@ class CaveMazeScene extends Phaser.Scene {
     this.add.text(W / 2, 18, 'NAVIGATE THE CAVE', {
       fontSize: '16px', fontFamily: 'Georgia, serif', color: '#c4a44a', fontStyle: 'bold'
     }).setOrigin(0.5);
-    this.add.text(W / 2, 38, 'Use arrow keys to find the exit!', {
+    const mazeHint = this.sys.game.device.input.touch ? 'Use the D-pad or arrow keys to find the exit!' : 'Use arrow keys to find the exit!';
+    this.add.text(W / 2, 38, mazeHint, {
       fontSize: '11px', fontFamily: 'monospace', color: '#8a7a5a'
     }).setOrigin(0.5);
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // Maze dimensions (must be odd)
     this.COLS = 21;
@@ -54,7 +56,7 @@ class CaveMazeScene extends Phaser.Scene {
 
     // Step counter
     this.steps = 0;
-    this.stepText = this.add.text(W - 20, 18, 'Steps: 0', {
+    this.stepText = this.add.text(W - 96, 18, 'Steps: 0', {
       fontSize: '11px', fontFamily: 'monospace', color: '#8a7a5a'
     }).setOrigin(1, 0);
 
@@ -62,6 +64,33 @@ class CaveMazeScene extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
     this.moveDelay = 0;
     this.completed = false;
+    this.mobileDir = { dx: 0, dy: 0 };
+    this.createMobileControls();
+    if (window.AudioManager) {
+      window.AudioManager.resumeContext();
+      window.AudioManager.startMazeMusic();
+    }
+  }
+
+  shutdown() {
+    // window.AudioManager.stopMazeMusic(); // Keep music playing
+  }
+
+  createMobileControls() {
+    if (!this.sys.game.device.input.touch) return;
+    const H = this.scale.height;
+    const btns = [
+      { k: 'dpad-up', x: 80, y: H - 120, dx: 0, dy: -1 },
+      { k: 'dpad-down', x: 80, y: H - 40, dx: 0, dy: 1 },
+      { k: 'dpad-left', x: 40, y: H - 80, dx: -1, dy: 0 },
+      { k: 'dpad-right', x: 120, y: H - 80, dx: 1, dy: 0 }
+    ];
+    btns.forEach(b => {
+      const img = this.add.image(b.x, b.y, b.k).setScrollFactor(0).setDepth(300).setAlpha(0.65).setInteractive({ useHandCursor: false });
+      img.on('pointerdown', () => { this.mobileDir.dx = b.dx; this.mobileDir.dy = b.dy; });
+      img.on('pointerup', () => { this.mobileDir.dx = 0; this.mobileDir.dy = 0; });
+      img.on('pointerout', () => { this.mobileDir.dx = 0; this.mobileDir.dy = 0; });
+    });
   }
 
   generateMaze(cols, rows) {
@@ -123,7 +152,10 @@ class CaveMazeScene extends Phaser.Scene {
     if (time < this.moveDelay) return;
 
     let dx = 0, dy = 0;
-    if (this.cursors.left.isDown) dx = -1;
+    if (this.mobileDir.dx !== 0 || this.mobileDir.dy !== 0) {
+      dx = this.mobileDir.dx;
+      dy = this.mobileDir.dy;
+    } else if (this.cursors.left.isDown) dx = -1;
     else if (this.cursors.right.isDown) dx = 1;
     else if (this.cursors.up.isDown) dy = -1;
     else if (this.cursors.down.isDown) dy = 1;
@@ -163,6 +195,7 @@ class CaveMazeScene extends Phaser.Scene {
     this.tweens.add({ targets: msg, alpha: 1, duration: 500 });
 
     this.time.delayedCall(1500, () => {
+      // if (window.AudioManager) window.AudioManager.stopMazeMusic(); // Keep music playing
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => {
         this.scene.start('GoldMiner');

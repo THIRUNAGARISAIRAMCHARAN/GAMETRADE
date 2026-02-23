@@ -22,6 +22,7 @@ class GoldMinerScene extends Phaser.Scene {
     this.add.text(W / 2, 56, 'Click dirt blocks to dig! Find all 8 gold nuggets.', {
       fontSize: '11px', fontFamily: 'monospace', color: '#e8e0d0'
     }).setOrigin(0.5);
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // Grid setup
     this.COLS = 10;
@@ -188,6 +189,8 @@ class GoldMinerScene extends Phaser.Scene {
     if (this.completed) return;
     if (this.tiles[r][c].dug) return;
 
+    if (window.AudioManager) window.AudioManager.playDig();
+
     const x = this.offsetX + c * this.CELL;
     const y = this.offsetY + r * this.CELL;
     const g = this.tileGraphics[r][c];
@@ -237,7 +240,6 @@ class GoldMinerScene extends Phaser.Scene {
     window.gameState.set('completedMining', true);
     window.gameState.set('foundTreasure', true);
     window.gameState.addCoins(coinsEarned);
-    try { if (this.cache.audio.exists('sfx_coin')) this.sound.play('sfx_coin', { volume: 0.3 }); } catch (e) {}
 
     const layer = this.add.container(0, 0).setDepth(200);
     const dim = this.add.graphics(); dim.fillStyle(0x1a0f0a, 0.8); dim.fillRect(0, 0, W, H); layer.add(dim);
@@ -271,6 +273,7 @@ class GoldMinerScene extends Phaser.Scene {
     cont.on('pointerover', () => cont.setColor('#ffffff'));
     cont.on('pointerout', () => cont.setColor('#d4a440'));
     cont.on('pointerdown', () => {
+      if (window.AudioManager) window.AudioManager.playClick();
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Town'));
     });
@@ -280,7 +283,6 @@ class GoldMinerScene extends Phaser.Scene {
     window.gameState.set('completedMining', true);
     window.gameState.set('foundTreasure', true);
     window.gameState.addCoins(200);
-    try { if (this.cache.audio.exists('sfx_coin')) this.sound.play('sfx_coin', { volume: 0.3 }); } catch (e) {}
 
     const W = this.scale.width, H = this.scale.height;
     const layer = this.add.container(0, 0).setDepth(200);
@@ -311,6 +313,7 @@ class GoldMinerScene extends Phaser.Scene {
     cont.on('pointerover', () => cont.setColor('#ffffff'));
     cont.on('pointerout', () => cont.setColor('#d4a440'));
     cont.on('pointerdown', () => {
+      if (window.AudioManager) window.AudioManager.playClick();
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Town'));
     });

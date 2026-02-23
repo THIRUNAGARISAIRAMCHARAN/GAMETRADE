@@ -27,9 +27,11 @@ class RiverScene extends Phaser.Scene {
     this.add.text(W / 2, 16, 'CROSS THE RIVER', {
       fontSize: '16px', fontFamily: 'Georgia, serif', color: '#ffd700', fontStyle: 'bold'
     }).setOrigin(0.5);
-    this.add.text(W / 2, 36, 'Navigate with arrow keys! Avoid the rocks!', {
+    const navHint = this.sys.game.device.input.touch ? 'Tap left/right to steer! Avoid the rocks!' : 'Navigate with arrow keys! Avoid the rocks!';
+    this.add.text(W / 2, 36, navHint, {
       fontSize: '11px', fontFamily: 'monospace', color: '#e8e0d0'
     }).setOrigin(0.5);
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // Left shore (start or end)
     const shore1 = this.add.graphics();
@@ -88,21 +90,44 @@ class RiverScene extends Phaser.Scene {
     this.completed = false;
     this.boatSpeed = 160;
     this.goingRight = goingRight;
+    this.mobileBoatVx = 0;
+    this.mobileBoatVy = 0;
+    this.createMobileControls();
+    if (window.AudioManager) {
+      window.AudioManager.resumeContext();
+      window.AudioManager.startRiverSound();
+    }
 
     // Progress indicator
     this.progressBar = this.add.graphics();
     this.add.text(W / 2, H - 12, 'Progress', { fontSize: '9px', fontFamily: 'monospace', color: '#e8e0d0' }).setOrigin(0.5);
   }
 
+  createMobileControls() {
+    if (!this.sys.game.device.input.touch) return;
+    const H = this.scale.height;
+    const W = this.scale.width;
+    const left = this.add.image(60, H - 70, 'dpad-left').setScrollFactor(0).setDepth(300).setAlpha(0.65).setInteractive({ useHandCursor: false });
+    const right = this.add.image(140, H - 70, 'dpad-right').setScrollFactor(0).setDepth(300).setAlpha(0.65).setInteractive({ useHandCursor: false });
+    left.on('pointerdown', () => { this.mobileBoatVx = -this.boatSpeed; });
+    left.on('pointerup', () => { this.mobileBoatVx = 0; });
+    left.on('pointerout', () => { this.mobileBoatVx = 0; });
+    right.on('pointerdown', () => { this.mobileBoatVx = this.boatSpeed; });
+    right.on('pointerup', () => { this.mobileBoatVx = 0; });
+    right.on('pointerout', () => { this.mobileBoatVx = 0; });
+  }
+
   update() {
     if (this.completed) return;
 
-    // Boat movement
-    let vx = 0, vy = 0;
+    // Boat movement (keyboard + mobile)
+    let vx = this.mobileBoatVx || 0, vy = this.mobileBoatVy || 0;
     if (this.cursors.left.isDown) vx = -this.boatSpeed;
     if (this.cursors.right.isDown) vx = this.boatSpeed;
     if (this.cursors.up.isDown) vy = -this.boatSpeed;
     if (this.cursors.down.isDown) vy = this.boatSpeed;
+    if (this.mobileBoatVx !== 0) vx = this.mobileBoatVx;
+    if (this.mobileBoatVy !== 0) vy = this.mobileBoatVy;
 
     // Auto forward drift
     vx += this.goingRight ? 30 : -30;
@@ -148,6 +173,7 @@ class RiverScene extends Phaser.Scene {
     this.tweens.add({ targets: msg, alpha: 1, duration: 500 });
 
     this.time.delayedCall(1500, () => {
+      if (window.AudioManager) window.AudioManager.stopRiverSound();
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => {
         if (this.direction === 'toBankVillage') {
@@ -158,5 +184,9 @@ class RiverScene extends Phaser.Scene {
         }
       });
     });
+  }
+
+  shutdown() {
+    if (window.AudioManager) window.AudioManager.stopRiverSound();
   }
 }

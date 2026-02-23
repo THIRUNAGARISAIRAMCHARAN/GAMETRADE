@@ -343,6 +343,7 @@ class InterestScene extends Phaser.Scene {
   }
 
   onComplete(total, interest) {
+    if (window.AudioManager) window.AudioManager.playAchievement();
     window.gameState.completeChapter(4);
     window.gameState.set('bankBalance', total);
 

@@ -37,6 +37,7 @@ class MarketScene extends Phaser.Scene {
     this.buildGround();
     this.buildCollisions();
     this.placeStalls();
+    this.placeMarketPeople();
 
     // Player
     const charKey = window.gameState.get('selectedCharacter') || 'arnav';
@@ -57,6 +58,7 @@ class MarketScene extends Phaser.Scene {
     // Controls
     this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.createMobileControls();
 
     this.setupStallInteractions();
 
@@ -79,6 +81,7 @@ class MarketScene extends Phaser.Scene {
       fontSize: '11px', fontFamily: 'monospace', color: '#ffd700'
     });
     this.objContainer.add(this.objText);
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     // Intro
     if (this.boughtItems.length === 0) {
@@ -153,6 +156,40 @@ class MarketScene extends Phaser.Scene {
     });
   }
 
+  placeMarketPeople() {
+    const customerKeys = ['npc-guide', 'npc-mother', 'npc-aunty'];
+    const peoplePositions = [
+      { x: 6 * this.TILE + this.TILE / 2, y: 10 * this.TILE + this.TILE / 2, label: 'Shopper' },
+      { x: 14 * this.TILE + this.TILE / 2, y: 9 * this.TILE + this.TILE / 2, label: 'Villager' },
+      { x: 18 * this.TILE + this.TILE / 2, y: 11 * this.TILE + this.TILE / 2, label: 'Shopper' },
+      { x: 8 * this.TILE + this.TILE / 2, y: 12 * this.TILE + this.TILE / 2, label: 'Villager' },
+      { x: 12 * this.TILE + this.TILE / 2, y: 14 * this.TILE + this.TILE / 2, label: 'Shopper' },
+    ];
+    this.marketPeople = [];
+    peoplePositions.forEach((pos, i) => {
+      const ck = customerKeys[i % customerKeys.length];
+      const npc = this.add.sprite(pos.x, pos.y, ck, 0).setDepth(4).setScale(1.1);
+      const animKey = ck + '-idle-market';
+      if (!this.anims.exists(animKey)) {
+        this.anims.create({
+          key: animKey,
+          frames: this.anims.generateFrameNumbers(ck, { start: 0, end: 3 }),
+          frameRate: 2,
+          repeat: -1
+        });
+      }
+      npc.anims.play(animKey);
+      this.add.text(pos.x, pos.y - 20, pos.label, {
+        fontSize: '8px', fontFamily: 'monospace', color: '#aaa', backgroundColor: '#00000066', padding: { x: 2, y: 1 }
+      }).setOrigin(0.5).setDepth(5);
+      this.marketPeople.push({ sprite: npc, x: pos.x, y: pos.y });
+    });
+  }
+
+  createMobileControls() {
+    if (typeof MobileControls !== 'undefined') MobileControls.addDpadAndAction(this, this.player, () => this.handleAction());
+  }
+
   setupStallInteractions() {
     this.interactables = [];
     this.stallItems.forEach((item, idx) => {
@@ -215,6 +252,7 @@ class MarketScene extends Phaser.Scene {
       // Check if all items bought
       if (this.boughtItems.length === this.stallItems.length) {
         this.time.delayedCall(1000, () => {
+          if (window.AudioManager) window.AudioManager.playAchievement();
           window.gameState.set('completedMarket', true);
           const isLastLevel = window.gameState.get('motherGaveGroceryListAfterATM');
           this.dialogue.show(
@@ -255,8 +293,8 @@ class MarketScene extends Phaser.Scene {
       this.cameras.main.fadeOut(500);
       this.cameras.main.once('camerafadeoutcomplete', () => {
         if (gs.get('motherGaveGroceryListAfterATM')) {
-          gs.set('gameEnded', true);
-          this.scene.start('GameEnd');
+          // Last level: send player home so mom can congratulate before game end
+          this.scene.start('HouseInterior', { from: 'market', lastLevelComplete: true });
         } else {
           this.scene.start('HouseInterior', { from: 'market' });
         }

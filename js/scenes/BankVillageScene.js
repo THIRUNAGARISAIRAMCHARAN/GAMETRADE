@@ -44,6 +44,7 @@ class BankVillageScene extends Phaser.Scene {
 
     // Objective UI
     this.createObjectiveUI();
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
     this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
@@ -225,23 +226,7 @@ class BankVillageScene extends Phaser.Scene {
   }
 
   createMobileControls() {
-    if (!this.sys.game.device.input.touch) return;
-    const btns = [
-      { k: 'dpad-up', x: 80, y: this.scale.height - 120, dx: 0, dy: -1 },
-      { k: 'dpad-down', x: 80, y: this.scale.height - 40, dx: 0, dy: 1 },
-      { k: 'dpad-left', x: 40, y: this.scale.height - 80, dx: -1, dy: 0 },
-      { k: 'dpad-right', x: 120, y: this.scale.height - 80, dx: 1, dy: 0 },
-      { k: 'btn-action', x: this.scale.width - 60, y: this.scale.height - 80, act: true }
-    ];
-    btns.forEach(b => {
-      const img = this.add.image(b.x, b.y, b.k).setScrollFactor(0).setDepth(300).setAlpha(0.6).setInteractive();
-      if (b.act) { img.on('pointerdown', () => this.handleAction()); }
-      else {
-        img.on('pointerdown', () => this.player.setMobileDirection(b.dx, b.dy));
-        img.on('pointerup', () => this.player.setMobileDirection(0, 0));
-        img.on('pointerout', () => this.player.setMobileDirection(0, 0));
-      }
-    });
+    if (typeof MobileControls !== 'undefined') MobileControls.addDpadAndAction(this, this.player, () => this.handleAction());
   }
 
   // ==================== INTERACTIONS ====================

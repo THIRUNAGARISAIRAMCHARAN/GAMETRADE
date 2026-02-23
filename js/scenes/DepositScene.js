@@ -302,6 +302,7 @@ class DepositScene extends Phaser.Scene {
   }
 
   quizComplete() {
+    if (window.AudioManager) window.AudioManager.playAchievement();
     window.gameState.completeChapter(2);
     this.showLesson('Lesson 2 Complete!', [
       'Depositing puts money safely in the bank',

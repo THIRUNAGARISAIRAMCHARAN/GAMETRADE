@@ -12,6 +12,7 @@ class HouseInteriorScene extends Phaser.Scene {
     const W = this.scale.width, H = this.scale.height;
     this.cameras.main.fadeIn(500);
     this.fromWhere = (data && data.from) || '';
+    this.lastLevelComplete = !!(data && data.lastLevelComplete);
 
     this.drawInterior(W, H);
 
@@ -53,8 +54,35 @@ class HouseInteriorScene extends Phaser.Scene {
     // Controls
     this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
     this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.createMobileControls();
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
 
-    // Dialogue with mother only when player walks to mother and presses E (see handleAction)
+    // Last level: after buying all groceries, mom congratulates then game ends
+    if (this.lastLevelComplete) {
+      this.time.delayedCall(1000, () => this.showLastLevelMomCongratulations());
+    }
+  }
+
+  /** Last level: mom congratulates player on completing all banking lessons, then go to Game End. */
+  showLastLevelMomCongratulations() {
+    const gs = window.gameState;
+    const charName = gs.get('selectedCharacter') === 'ananya' ? 'Ananya' : 'Arnav';
+    this.dialogue.show([
+      { speaker: 'Mother', text: 'You\'re back with all the groceries! Well done, ' + charName + '!' },
+      { speaker: 'Mother', text: 'You used the ATM to withdraw cash, went to the market, and bought everything we needed. I\'m so proud of you!' },
+      { speaker: 'Mother', text: 'You have completed all the banking lessons. You know how to save, deposit, spend wisely, earn interest, and use the ATM. Congratulations!' }
+    ], () => {
+      gs.set('gameEnded', true);
+      this.cameras.main.fadeOut(600);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('GameEnd', {
+          fromLastLevel: true,
+          totalWithdrawn: gs.get('lastLevelTotalWithdrawn') || 0,
+          totalSpent: gs.get('lastLevelTotalSpent') || 0,
+          remainingCash: gs.get('coins') || 0
+        });
+      });
+    });
   }
 
   drawInterior(W, H) {
@@ -171,8 +199,8 @@ class HouseInteriorScene extends Phaser.Scene {
       return;
     }
 
-    // Chapter 3 done, waiting for interest notification
-    if (gs.get('chapter3Complete') && !gs.get('receivedInterestNotification')) {
+    // Chapter 3 done, waiting for interest notification (skip if in final level — avoid bank notification / freeze)
+    if (gs.get('chapter3Complete') && !gs.get('receivedInterestNotification') && !gs.get('motherGaveGroceryListAfterATM')) {
       this.time.delayedCall(1500, () => this.showNotification());
       this.dialogue.show([{ speaker: 'Mother', text: 'Good to see you home safe, dear.' }]);
       return;
@@ -243,13 +271,14 @@ class HouseInteriorScene extends Phaser.Scene {
     const needsZone = this.add.zone(needsX, zoneY, zoneW, zoneH).setRectangleDropZone(zoneW, zoneH);
     const wantsZone = this.add.zone(wantsX, zoneY, zoneW, zoneH).setRectangleDropZone(zoneW, zoneH);
 
-    // Items to drag (shuffled in center)
+    // Items to drag (shuffled in center); keep refs so we can destroy them when minigame completes
     const shuffled = Phaser.Utils.Array.Shuffle([...items]);
     this.ddScore = 0;
     this.ddTotal = shuffled.length;
     this.ddRemaining = shuffled.length;
     this.needsCount = 0;
     this.wantsCount = 0;
+    this.ddItemCards = [];
 
     this.ddFeedback = this.add.text(W / 2, 470, '', {
       fontSize: '12px', fontFamily: 'monospace', color: '#e8e0d0'
@@ -268,6 +297,7 @@ class HouseInteriorScene extends Phaser.Scene {
       card.setInteractive({ draggable: true, useHandCursor: true });
       card.itemData = item;
       card.startX = ix; card.startY = iy;
+      this.ddItemCards.push(card);
     });
 
     this.input.on('drag', (p, obj, dx, dy) => {
@@ -285,12 +315,11 @@ class HouseInteriorScene extends Phaser.Scene {
         this.ddScore++;
         const tgtX = droppedInNeeds ? needsX : wantsX;
         const count = droppedInNeeds ? this.needsCount++ : this.wantsCount++;
-        this.tweens.add({ targets: obj, x: tgtX - 50 + (count % 3) * 50, y: zoneY - 30 + Math.floor(count / 3) * 40, scale: 0.8, duration: 300 });
         this.ddFeedback.setText('\u2705 Correct! ' + obj.itemData.name + ' is a ' + obj.itemData.type.toUpperCase()).setColor('#5a9c4f');
+        this.tweens.add({ targets: obj, x: tgtX - 50 + (count % 3) * 50, y: zoneY - 30 + Math.floor(count / 3) * 40, scale: 0.8, duration: 300 });
       } else {
         const correctZone = obj.itemData.type === 'need' ? 'NEEDS' : 'WANTS';
         this.ddFeedback.setText('\u274C Wrong! ' + obj.itemData.name + ' belongs in ' + correctZone).setColor('#ff6b6b');
-        // Move to correct zone anyway
         const tgtX = obj.itemData.type === 'need' ? needsX : wantsX;
         const count = obj.itemData.type === 'need' ? this.needsCount++ : this.wantsCount++;
         this.tweens.add({ targets: obj, x: tgtX - 50 + (count % 3) * 50, y: zoneY - 30 + Math.floor(count / 3) * 40, scale: 0.8, duration: 500 });
@@ -312,7 +341,15 @@ class HouseInteriorScene extends Phaser.Scene {
     window.gameState.set('completedMarket', true);
     window.gameState.set('ch3MarketDone', true);
 
+    // Remove all needs vs wants UI and item cards so nothing stays stuck on screen
+    if (this.ddItemCards && this.ddItemCards.length) {
+      this.ddItemCards.forEach(card => { if (card && card.destroy) card.destroy(); });
+      this.ddItemCards = [];
+    }
+    if (this.ddFeedback && this.ddFeedback.destroy) this.ddFeedback.destroy();
+    this.ddFeedback = null;
     if (this.ddLayer) this.ddLayer.destroy();
+    this.ddLayer = null;
 
     const W = this.scale.width, H = this.scale.height;
     const layer = this.add.container(0, 0).setDepth(300);
@@ -416,5 +453,9 @@ class HouseInteriorScene extends Phaser.Scene {
         this.scene.start('Town', { from: 'house' });
       });
     }
+  }
+
+  createMobileControls() {
+    if (typeof MobileControls !== 'undefined') MobileControls.addDpadAndAction(this, this.player, () => this.handleAction());
   }
 }

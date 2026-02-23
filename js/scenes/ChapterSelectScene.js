@@ -44,6 +44,7 @@ class ChapterSelectScene extends Phaser.Scene {
     backBtn.on('pointerover', () => backBtn.setColor('#c4a44a'));
     backBtn.on('pointerout', () => backBtn.setColor('#8a7a5a'));
     backBtn.on('pointerdown', () => {
+      if (window.AudioManager) window.AudioManager.playClick();
       this.cameras.main.fadeOut(400);
       this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('Town'));
     });
@@ -51,9 +52,10 @@ class ChapterSelectScene extends Phaser.Scene {
     // Stats
     const coins = window.gameState.get('coins');
     const bal = window.gameState.get('bankBalance');
-    this.add.text(width - 16, 10, 'Wallet: ' + coins + 'G  |  Bank: ' + bal + 'G', {
+    this.add.text(width - 98, 10, 'Wallet: ' + coins + 'G  |  Bank: ' + bal + 'G', {
       fontSize: '10px', fontFamily: 'monospace', color: '#8a7a5a'
     }).setOrigin(1, 0);
+    if (typeof LevelInfoUI !== 'undefined') LevelInfoUI.create(this);
   }
 
   createCard(cx, cy, w, h, ch) {
@@ -94,6 +96,7 @@ class ChapterSelectScene extends Phaser.Scene {
         card.lineStyle(2, completed ? 0x5a9c4f : 0xc4a44a); card.strokeRoundedRect(cx - w / 2, cy - h / 2, w, h, 10);
       });
       zone.on('pointerdown', () => {
+        if (window.AudioManager) window.AudioManager.playClick();
         this.cameras.main.fadeOut(400);
         this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start(ch.scene));
       });

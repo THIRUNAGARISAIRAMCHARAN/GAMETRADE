@@ -53,8 +53,14 @@ class GameStateManager {
   }
   get(key) { return this.state[key]; }
   set(key, val) { this.state[key] = val; }
-  addCoins(n) { this.state.coins += n; }
-  removeCoins(n) { this.state.coins = Math.max(0, this.state.coins - n); }
+  addCoins(n) {
+    this.state.coins += n;
+    if (window.AudioManager) window.AudioManager.playCoinIn();
+  }
+  removeCoins(n) {
+    this.state.coins = Math.max(0, this.state.coins - n);
+    if (window.AudioManager) window.AudioManager.playCoinOut();
+  }
   isChapterUnlocked(n) {
     if (n === 1) return true;
     return this.state['chapter' + (n - 1) + 'Complete'] === true;
@@ -63,6 +69,21 @@ class GameStateManager {
   getHighestCompleted() {
     for (let i = 5; i >= 1; i--) { if (this.state['chapter' + i + 'Complete']) return i; }
     return 0;
+  }
+  getTotalLevels() { return 5; }
+  getCurrentLevel() {
+    for (let i = 1; i <= 5; i++) { if (!this.state['chapter' + i + 'Complete']) return i; }
+    return 5;
+  }
+  getLevelTitle(levelNum) {
+    const titles = {
+      1: 'Treasure Hunt & Bank Account',
+      2: 'Deposits & Balance',
+      3: 'Withdrawals & Spending',
+      4: 'Interest & Money Tree',
+      5: 'ATM Card & Security'
+    };
+    return titles[levelNum] || 'Level ' + levelNum;
   }
   deposit(amt) {
     if (amt > 0 && amt <= this.state.coins) {

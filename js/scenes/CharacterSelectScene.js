@@ -71,12 +71,32 @@ class CharacterSelectScene extends Phaser.Scene {
     zone.on('pointerover', () => this.drawCard(card, x, y, true));
     zone.on('pointerout', () => this.drawCard(card, x, y, false));
     zone.on('pointerdown', () => {
-      try { if (this.cache.audio.exists('sfx_click')) this.sound.play('sfx_click', { volume: 0.3 }); } catch (e) {}
+      try {
+        if (window.AudioManager) {
+          window.AudioManager.init(this);
+          window.AudioManager.resumeContext();
+          window.AudioManager.startMusic();
+          window.AudioManager.playCharacterSelect();
+        }
+      } catch (e) {
+        console.warn("CharacterSelect: Audio fail", e);
+      }
+
       window.gameState.set('selectedCharacter', key);
-      this.cameras.main.fadeOut(500, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
+
+      // Ensure we transition even if fadeOut fails
+      let transitioned = false;
+      const startNext = () => {
+        if (transitioned) return;
+        transitioned = true;
         this.scene.start('Town');
-      });
+      };
+
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', startNext);
+
+      // Force transition after 700ms if fadeout event doesn't fire
+      this.time.delayedCall(700, startNext);
     });
   }
 
