@@ -9,6 +9,7 @@ class HouseInteriorScene extends Phaser.Scene {
   constructor() { super('HouseInterior'); }
 
   create(data) {
+    if (window.AudioManager) window.AudioManager.init(this);
     const W = this.scale.width, H = this.scale.height;
     this.cameras.main.fadeIn(500);
     this.fromWhere = (data && data.from) || '';

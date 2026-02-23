@@ -8,6 +8,7 @@ class InterestScene extends Phaser.Scene {
   constructor() { super('Interest'); }
 
   create(data) {
+    if (window.AudioManager) window.AudioManager.init(this);
     this.parentScene = (data && data.parentScene) || 'BankInterior';
     this.W = this.scale.width; this.H = this.scale.height;
     this.cameras.main.setBackgroundColor('#1a2a1a');
@@ -303,7 +304,7 @@ class InterestScene extends Phaser.Scene {
       // Gold coins on tree
       this.treeGraphics.fillStyle(0xffd700);
       const coins = [[x - 15, y - 140], [x + 12, y - 135], [x - 5, y - 150],
-                      [x + 22, y - 120], [x - 22, y - 118]];
+      [x + 22, y - 120], [x - 22, y - 118]];
       coins.forEach(([cx, cy]) => {
         this.treeGraphics.fillCircle(cx, cy, 6);
         this.treeGraphics.fillStyle(0xd4a440);

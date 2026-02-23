@@ -8,6 +8,7 @@ class BankVillageScene extends Phaser.Scene {
   constructor() { super('BankVillage'); }
 
   create() {
+    if (window.AudioManager) window.AudioManager.init(this);
     this.TILE = 32;
     this.MAP_W = 25;
     this.MAP_H = 20;

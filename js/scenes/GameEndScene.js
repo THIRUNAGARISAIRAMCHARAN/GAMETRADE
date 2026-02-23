@@ -6,6 +6,7 @@ class GameEndScene extends Phaser.Scene {
   constructor() { super('GameEnd'); }
 
   create() {
+    if (window.AudioManager) window.AudioManager.init(this);
     const W = this.scale.width, H = this.scale.height;
     if (window.AudioManager) window.AudioManager.playWin();
     this.cameras.main.setBackgroundColor('#0d0d1a');
@@ -112,7 +113,7 @@ class GameEndScene extends Phaser.Scene {
     replayBtn.on('pointerover', () => replayBtn.setColor('#ffd700'));
     replayBtn.on('pointerout', () => replayBtn.setColor('#ffffff'));
     replayBtn.on('pointerdown', () => {
-      try { if (this.cache.audio.exists('sfx_click')) this.sound.play('sfx_click', { volume: 0.3 }); } catch (e) {}
+      try { if (this.cache.audio.exists('sfx_click')) this.sound.play('sfx_click', { volume: 0.3 }); } catch (e) { }
       window.gameState = new GameStateManager();
       this.cameras.main.fadeOut(800);
       this.cameras.main.once('camerafadeoutcomplete', () => {

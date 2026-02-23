@@ -8,6 +8,7 @@ class WithdrawScene extends Phaser.Scene {
   constructor() { super('Withdraw'); }
 
   create(data) {
+    if (window.AudioManager) window.AudioManager.init(this);
     this.parentScene = (data && data.parentScene) || 'BankInterior';
     this.W = this.scale.width; this.H = this.scale.height;
     this.cameras.main.setBackgroundColor('#1e0f0f');
@@ -80,7 +81,7 @@ class WithdrawScene extends Phaser.Scene {
   }
 
   createNumpad(cx, cy, onDigit) {
-    const digits = [[1,2,3],[4,5,6],[7,8,9],[null,0,'C']];
+    const digits = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [null, 0, 'C']];
     const bW = 50, bH = 38, gap = 4;
     const sx = cx - 1.5 * bW - gap, sy = cy - 2 * bH - 1.5 * gap;
     digits.forEach((row, r) => {

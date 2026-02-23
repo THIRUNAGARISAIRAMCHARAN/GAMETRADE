@@ -7,6 +7,7 @@ class DepositScene extends Phaser.Scene {
   constructor() { super('Deposit'); }
 
   create(data) {
+    if (window.AudioManager) window.AudioManager.init(this);
     this.parentScene = (data && data.parentScene) || 'BankInterior';
     const W = this.scale.width, H = this.scale.height;
     this.cameras.main.setBackgroundColor('#1e0f0f');

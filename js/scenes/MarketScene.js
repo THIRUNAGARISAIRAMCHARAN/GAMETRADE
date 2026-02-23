@@ -10,6 +10,7 @@ class MarketScene extends Phaser.Scene {
   constructor() { super('Market'); }
 
   create(data) {
+    if (window.AudioManager) window.AudioManager.init(this);
     this.TILE = 32;
     this.MAP_W = 25;
     this.MAP_H = 20;
@@ -258,9 +259,9 @@ class MarketScene extends Phaser.Scene {
           this.dialogue.show(
             isLastLevel
               ? [
-                  { speaker: '', text: 'All groceries purchased!' },
-                  { speaker: '', text: 'You\'ve completed all the lessons. Congratulations!' }
-                ]
+                { speaker: '', text: 'All groceries purchased!' },
+                { speaker: '', text: 'You\'ve completed all the lessons. Congratulations!' }
+              ]
               : [{ speaker: '', text: 'All groceries purchased! Time to go home.' }]
           );
         });
@@ -271,15 +272,15 @@ class MarketScene extends Phaser.Scene {
       const hasATM = window.gameState.get('hasATMCard');
       const msgs = hasATM
         ? [
-            { speaker: '', text: 'Money insufficient! You need ' + item.cost + 'G but only have ' + coins + 'G.' },
-            { speaker: '', text: 'Use your ATM card to withdraw more money in town!' },
-            { speaker: '', text: 'Exit the market and use the ATM near your house.' }
-          ]
+          { speaker: '', text: 'Money insufficient! You need ' + item.cost + 'G but only have ' + coins + 'G.' },
+          { speaker: '', text: 'Use your ATM card to withdraw more money in town!' },
+          { speaker: '', text: 'Exit the market and use the ATM near your house.' }
+        ]
         : [
-            { speaker: '', text: 'Money insufficient! You need ' + item.cost + 'G but only have ' + coins + 'G.' },
-            { speaker: '', text: 'Go to the bank to withdraw more money!' },
-            { speaker: '', text: 'Exit the market and cross the river to the bank.' }
-          ];
+          { speaker: '', text: 'Money insufficient! You need ' + item.cost + 'G but only have ' + coins + 'G.' },
+          { speaker: '', text: 'Go to the bank to withdraw more money!' },
+          { speaker: '', text: 'Exit the market and cross the river to the bank.' }
+        ];
       this.dialogue.show(msgs, () => {
         window.gameState.set('needsMoreMoney', true);
       });

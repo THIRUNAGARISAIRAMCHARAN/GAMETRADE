@@ -5,6 +5,7 @@ class ChapterSelectScene extends Phaser.Scene {
   constructor() { super('ChapterSelect'); }
 
   create() {
+    if (window.AudioManager) window.AudioManager.init(this);
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor('#1e0f0f');
     this.cameras.main.fadeIn(500);
@@ -17,11 +18,11 @@ class ChapterSelectScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     const chapters = [
-      { num: 1, title: 'Treasure Hunt\n& Bank Account', icon: '\uD83C\uDFE6', scene: 'Town',     desc: 'Cave \u2192 Maze \u2192 Gold \u2192 River \u2192 Bank' },
-      { num: 2, title: 'Deposits\n& Balance',          icon: '\uD83D\uDCB0', scene: 'Deposit',    desc: 'Learn to deposit & check balance' },
-      { num: 3, title: 'Withdrawals\n& Spending',      icon: '\uD83D\uDCB3', scene: 'Withdraw',   desc: 'Withdraw, budget & spend wisely' },
-      { num: 4, title: 'Interest &\nMoney Tree',       icon: '\uD83C\uDF33', scene: 'Interest',   desc: 'Watch your savings grow!' },
-      { num: 5, title: 'ATM Card\n& Security',         icon: '\uD83C\uDFE7', scene: 'ATM',        desc: 'Get ATM card, set PIN, use ATM' },
+      { num: 1, title: 'Treasure Hunt\n& Bank Account', icon: '\uD83C\uDFE6', scene: 'Town', desc: 'Cave \u2192 Maze \u2192 Gold \u2192 River \u2192 Bank' },
+      { num: 2, title: 'Deposits\n& Balance', icon: '\uD83D\uDCB0', scene: 'Deposit', desc: 'Learn to deposit & check balance' },
+      { num: 3, title: 'Withdrawals\n& Spending', icon: '\uD83D\uDCB3', scene: 'Withdraw', desc: 'Withdraw, budget & spend wisely' },
+      { num: 4, title: 'Interest &\nMoney Tree', icon: '\uD83C\uDF33', scene: 'Interest', desc: 'Watch your savings grow!' },
+      { num: 5, title: 'ATM Card\n& Security', icon: '\uD83C\uDFE7', scene: 'ATM', desc: 'Get ATM card, set PIN, use ATM' },
     ];
 
     // Layout: single row of 5 or 3+2

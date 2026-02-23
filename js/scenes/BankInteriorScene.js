@@ -13,6 +13,7 @@ class BankInteriorScene extends Phaser.Scene {
   constructor() { super('BankInterior'); }
 
   create() {
+    if (window.AudioManager) window.AudioManager.init(this);
     const { width, height } = this.scale;
     this.cameras.main.fadeIn(600);
     this.drawInterior(width, height);

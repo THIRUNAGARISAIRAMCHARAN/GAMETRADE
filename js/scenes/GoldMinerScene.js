@@ -7,6 +7,7 @@ class GoldMinerScene extends Phaser.Scene {
   constructor() { super('GoldMiner'); }
 
   create() {
+    if (window.AudioManager) window.AudioManager.init(this);
     const W = this.scale.width, H = this.scale.height;
     this.cameras.main.setBackgroundColor('#1a0f0a');
     this.cameras.main.fadeIn(500);

@@ -8,6 +8,7 @@ class ATMScene extends Phaser.Scene {
   constructor() { super('ATM'); }
 
   create(data) {
+    if (window.AudioManager) window.AudioManager.init(this);
     this.parentScene = (data && data.parentScene) || 'BankInterior';
     this.W = this.scale.width; this.H = this.scale.height;
     this.cameras.main.setBackgroundColor('#1e0f0f');
