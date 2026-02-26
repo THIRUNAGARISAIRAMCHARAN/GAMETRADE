@@ -51,25 +51,27 @@ class GameEndScene extends Phaser.Scene {
     lessons.forEach((l, i) => {
       const ly = 210 + i * 44;
       const lx = W / 2;
+      const boxLeft = lx - 240;
       const bg = this.add.graphics();
       bg.fillStyle(0x1a1a2e, 0.8);
-      bg.fillRoundedRect(lx - 240, ly, 480, 38, 8);
+      bg.fillRoundedRect(boxLeft, ly, 480, 38, 8);
       bg.lineStyle(1, 0xd4a440);
-      bg.strokeRoundedRect(lx - 240, ly, 480, 38, 8);
+      bg.strokeRoundedRect(boxLeft, ly, 480, 38, 8);
 
-      this.add.text(lx - 220, ly + 10, l.icon, { fontSize: '16px' });
-      this.add.text(lx - 190, ly + 8, 'Ch ' + l.ch + ': ' + l.title, {
+      this.add.text(boxLeft + 20, ly + 19, l.icon, { fontSize: '16px' }).setOrigin(0, 0.5);
+      this.add.text(boxLeft + 42, ly + 19, 'Ch ' + l.ch + ': ' + l.title, {
         fontSize: '12px', fontFamily: 'monospace', color: '#d4a440', fontStyle: 'bold'
-      });
-      this.add.text(lx + 100, ly + 10, l.desc, {
-        fontSize: '10px', fontFamily: 'monospace', color: '#8a8a8a'
-      });
-      this.add.text(lx + 228, ly + 10, '\u2705', { fontSize: '14px' });
+      }).setOrigin(0, 0.5);
+      this.add.text(boxLeft + 165, ly + 19, l.desc, {
+        fontSize: '10px', fontFamily: 'monospace', color: '#8a8a8a',
+        wordWrap: { width: 180 }
+      }).setOrigin(0, 0.5);
 
-      // Per-chapter replay button
-      const replayLabel = this.add.text(lx + 180, ly + 10, '[ Replay ]', {
+      // Replay button - right side, before checkmark (no overlap)
+      const replayLabel = this.add.text(boxLeft + 370, ly + 19, '[ Replay ]', {
         fontSize: '10px', fontFamily: 'monospace', color: '#5a9c4f', fontStyle: 'bold'
       }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      this.add.text(boxLeft + 450, ly + 19, '\u2705', { fontSize: '14px' }).setOrigin(0.5, 0.5);
       replayLabel.on('pointerover', () => replayLabel.setColor('#ffffff'));
       replayLabel.on('pointerout', () => replayLabel.setColor('#5a9c4f'));
       replayLabel.on('pointerdown', () => {

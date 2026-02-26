@@ -337,7 +337,7 @@ class DepositScene extends Phaser.Scene {
     panel.lineStyle(2, 0xc4a44a); panel.strokeRoundedRect(px - pw / 2, py - ph / 2, pw, ph, 14); layer.add(panel);
     layer.add(this.add.text(px, py - ph / 2 + 32, title, { fontSize: '20px', fontFamily: 'Georgia, serif', color: '#c4a44a', fontStyle: 'bold' }).setOrigin(0.5));
     points.forEach((p, i) => { layer.add(this.add.text(px, py - 25 + i * 28, '\u2705 ' + p, { fontSize: '12px', fontFamily: 'monospace', color: '#5a9c4f' }).setOrigin(0.5)); });
-    const cont = this.add.text(px, py + ph / 2 - 36, '[ Continue \u2192 ]', { fontSize: '15px', fontFamily: 'monospace', color: '#d4a440', fontStyle: 'bold' }).setOrigin(0.5).setInteractive({ useHandCursor: true }); layer.add(cont);
+    const cont = this.add.text(px, py + ph / 2 - 36, '[ Click to continue ]', { fontSize: '15px', fontFamily: 'monospace', color: '#d4a440', fontStyle: 'bold' }).setOrigin(0.5).setInteractive({ useHandCursor: true }); layer.add(cont);
     cont.on('pointerover', () => cont.setColor('#ffffff')); cont.on('pointerout', () => cont.setColor('#d4a440'));
     cont.on('pointerdown', () => this.returnToParent());
   }

@@ -38,10 +38,15 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Ensure game is centered in viewport */
+  margin: 0 auto;
 }
 
+/* Phaser adds canvas directly - ensure it stays centered */
 #game-container canvas {
   display: block;
+  margin-left: auto !important;
+  margin-right: auto !important;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   -webkit-user-select: none;

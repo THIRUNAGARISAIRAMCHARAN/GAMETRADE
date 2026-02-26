@@ -67,15 +67,16 @@ class MarketScene extends Phaser.Scene {
     this.exitZone = this.add.zone(12 * this.TILE, 19 * this.TILE, 64, 32);
     this.physics.add.existing(this.exitZone, true);
     this.add.text(12 * this.TILE, 19.5 * this.TILE, '\u25BC Exit Market', {
-      fontSize: '9px', fontFamily: 'monospace', color: '#888'
-    }).setOrigin(0.5).setDepth(1);
+      fontSize: '12px', fontFamily: 'monospace', color: '#ffd700', fontStyle: 'bold',
+      backgroundColor: '#000000cc', padding: { x: 8, y: 4 }
+    }).setOrigin(0.5).setDepth(100);
 
-    // Purchased items column (right side, scrollFactor 0 so it stays on screen)
-    this.purchaseColumn = this.add.container(this.scale.width - 55, 60).setScrollFactor(0).setDepth(100);
+    // Purchased items column (right side, below wallet to avoid overlap)
+    this.purchaseColumn = this.add.container(this.scale.width - 55, 100).setScrollFactor(0).setDepth(100);
     this.drawPurchaseColumn();
 
-    // Objective
-    this.objContainer = this.add.container(10, 10).setScrollFactor(0).setDepth(100);
+    // Objective (below wallet - wallet at 10,10 is 44px tall)
+    this.objContainer = this.add.container(10, 58).setScrollFactor(0).setDepth(100);
     const obg = this.add.graphics(); obg.fillStyle(0x000000, 0.5); obg.fillRoundedRect(0, 0, 320, 34, 8);
     this.objContainer.add(obg);
     this.objText = this.add.text(10, 9, 'Buy groceries! Wallet: ' + (window.gameState.get('coins') || 0) + 'G', {

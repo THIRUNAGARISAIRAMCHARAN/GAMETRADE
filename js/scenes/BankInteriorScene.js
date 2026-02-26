@@ -60,7 +60,10 @@ class BankInteriorScene extends Phaser.Scene {
     this.wallet = new WalletSystem(this); this.wallet.create(); this.wallet.show();
     this.interactIcon = this.add.image(0, 0, 'ui-interact').setDepth(50).setVisible(false);
 
-    this.add.text(width / 2, height - 16, '\u25BC Exit to Village', { fontSize: '11px', fontFamily: 'monospace', color: '#888' }).setOrigin(0.5).setDepth(1);
+    this.add.text(width / 2, height - 16, '\u25BC Exit to Village', {
+      fontSize: '12px', fontFamily: 'monospace', color: '#ffd700', fontStyle: 'bold',
+      backgroundColor: '#000000cc', padding: { x: 8, y: 4 }
+    }).setOrigin(0.5).setDepth(100);
     this.exitZone = this.add.zone(width / 2, height - 6, 80, 20);
     this.physics.add.existing(this.exitZone, true);
 
@@ -414,7 +417,7 @@ class BankInteriorScene extends Phaser.Scene {
     }
 
     this.time.delayedCall(2500, () => {
-      const cont = this.add.text(width / 2, height / 2 + 115, '[ Continue to Deposit Lesson ]', {
+      const cont = this.add.text(width / 2, height / 2 + 115, '[ Click to continue ]', {
         fontSize: '14px', fontFamily: 'monospace', color: '#d4a440', fontStyle: 'bold'
       }).setOrigin(0.5).setInteractive({ useHandCursor: true });
       this.celebLayer.add(cont);
@@ -424,14 +427,7 @@ class BankInteriorScene extends Phaser.Scene {
         if (window.AudioManager) window.AudioManager.playClick();
         this.celebLayer.destroy();
         window.gameState.completeChapter(1);
-        // Directly launch deposit lesson
-        this.dialogue.show([
-          { speaker: 'Banker Vikram', text: 'Congratulations! Your gold is now safe with us.' },
-          { speaker: 'Banker Vikram', text: 'Now, let me teach you how to make deposits!' }
-        ], () => {
-          this.scene.pause();
-          this.scene.launch('Deposit', { parentScene: 'BankInterior' });
-        });
+        // Just dismiss the badge - deposit lesson is started by talking to the banker
       });
     });
   }

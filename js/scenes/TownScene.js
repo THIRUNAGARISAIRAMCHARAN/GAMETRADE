@@ -127,6 +127,11 @@ class TownScene extends Phaser.Scene {
     // Horizontal to school (row 9-10)
     for (let x = 20; x <= 32; x++) { m[9][x] = 1; m[10][x] = 1; }
 
+    // Path branches to village houses (north of main path)
+    for (let y = 7; y <= 8; y++) { m[y][12] = 1; m[y][24] = 1; }
+    // Path branches to village houses (south of main path)
+    for (let y = 11; y <= 12; y++) { m[y][8] = 1; m[y][16] = 1; }
+
     // Path to cave area (row 22-23, south) - through forest
     for (let x = 12; x <= 20; x++) { m[22][x] = 1; m[23][x] = 1; }
     // Vertical path from main path down to the cave entrance (cols 14-16, rows 20-26)
@@ -168,14 +173,14 @@ class TownScene extends Phaser.Scene {
       if (ty >= 0 && ty < H && tx >= 2 && tx < 39 && m[ty][tx] === 0) m[ty][tx] = 5;
     });
 
-    // Regular trees (away from forest)
+    // Regular trees (away from forest and village houses)
     const trees = [
       [4, 5], [4, 15], [4, 25], [4, 34],
-      [7, 14], [7, 26], [7, 34],
+      [7, 18], [7, 28], [7, 34],
       [12, 4], [12, 10], [12, 30], [12, 36],
       [15, 5], [15, 11], [15, 28], [15, 35],
       [18, 4], [18, 10], [18, 30], [18, 36],
-      [13, 34], [11, 14], [17, 7],
+      [13, 34], [14, 14], [17, 7],
     ];
     trees.forEach(([ty, tx]) => {
       if (ty >= 2 && ty < H - 2 && tx >= 2 && tx < 39 && m[ty][tx] === 0) m[ty][tx] = 5;
@@ -238,10 +243,30 @@ class TownScene extends Phaser.Scene {
   }
 
   placeBuildings() {
-    // House
+    // Player's House
     this.add.image(6 * this.TILE, 6 * this.TILE, 'building-house').setDepth(2);
     const hc = this.collisionGroup.create(6 * this.TILE, 5.8 * this.TILE, 'pixel');
     hc.setDisplaySize(120, 70).setVisible(false).refreshBody();
+
+    // Village house 1 (between player house and school)
+    this.add.image(12 * this.TILE, 6.5 * this.TILE, 'building-house').setDepth(2).setScale(0.9);
+    const vh1 = this.collisionGroup.create(12 * this.TILE, 6 * this.TILE, 'pixel');
+    vh1.setDisplaySize(100, 55).setVisible(false).refreshBody();
+
+    // Village house 2 (near school)
+    this.add.image(24 * this.TILE, 6.5 * this.TILE, 'building-house').setDepth(2).setScale(0.85);
+    const vh2 = this.collisionGroup.create(24 * this.TILE, 6 * this.TILE, 'pixel');
+    vh2.setDisplaySize(95, 50).setVisible(false).refreshBody();
+
+    // Village house 3 (south of main path, west)
+    this.add.image(8 * this.TILE, 11.5 * this.TILE, 'building-house').setDepth(2).setScale(0.8);
+    const vh3 = this.collisionGroup.create(8 * this.TILE, 11 * this.TILE, 'pixel');
+    vh3.setDisplaySize(90, 50).setVisible(false).refreshBody();
+
+    // Village house 4 (south of main path, center)
+    this.add.image(16 * this.TILE, 11.5 * this.TILE, 'building-house').setDepth(2).setScale(0.85);
+    const vh4 = this.collisionGroup.create(16 * this.TILE, 11 * this.TILE, 'pixel');
+    vh4.setDisplaySize(95, 50).setVisible(false).refreshBody();
 
     // ATM beside house
     this.atmImg = this.add.image(10 * this.TILE, 7.5 * this.TILE, 'building-atm').setDepth(2);
@@ -418,7 +443,7 @@ class TownScene extends Phaser.Scene {
     if (gs.get('completedMining') && !gs.get('metElderSage')) {
       this.wallet.show(); this.wallet.animateAdd(0);
     }
-    if (gs.get('foundTreasureMap')) {
+    if (gs.get('foundTreasureMap') && !gs.get('foundTreasure')) {
       this.showTreasureMapIcon();
     }
     if (gs.get('coins') > 0) { this.wallet.show(); }

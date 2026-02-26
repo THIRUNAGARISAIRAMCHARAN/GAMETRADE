@@ -37,8 +37,9 @@ class LibraryScene extends Phaser.Scene {
 
     // Exit zone
     this.add.text(W / 2, H - 12, '\u25BC Exit Library', {
-      fontSize: '11px', fontFamily: 'monospace', color: '#888'
-    }).setOrigin(0.5).setDepth(1);
+      fontSize: '12px', fontFamily: 'monospace', color: '#ffd700', fontStyle: 'bold',
+      backgroundColor: '#000000cc', padding: { x: 8, y: 4 }
+    }).setOrigin(0.5).setDepth(100);
     this.exitZone = this.add.zone(W / 2, H - 6, 80, 20);
     this.physics.add.existing(this.exitZone, true);
 

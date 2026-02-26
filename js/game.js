@@ -24,3 +24,8 @@ const config = {
   }
 };
 const game = new Phaser.Game(config);
+// Ensure canvas is centered on load and resize
+game.events.once('ready', () => {
+  game.scale.refresh();
+});
+window.addEventListener('resize', () => game.scale.refresh());
